@@ -1,3 +1,4 @@
+string SCRIPT_VERSION = "v0.0.1-alpha1";
 key notecardQueryId; //Identifier for the dataserver event
 string configName = "CONFIG"; //Name of a notecard in the object's inventory.
 integer notecardLine; //Initialize the counter value at 0
@@ -46,6 +47,7 @@ default
 {
     state_entry()
     {
+        llSay(0, "Starting LOST-teleporter script version " + SCRIPT_VERSION);
         ReadConfig();
         // position tweaked to stand just a bit away from the object
         llSitTarget(<-0.9, 0.0, 0.1>, ZERO_ROTATION);
