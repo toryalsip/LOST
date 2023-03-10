@@ -10,6 +10,7 @@ vector animationOffset = <0.0, 0.0, 0.1>; // Offset position of the avatar sitti
 string sound; // The sound that will play when sitting
 float soundVolume = 1.0;
 float sleepTime = 2.0;
+string teleportMessage;
 list destinations;
 list destinationNames;
 integer destinationCount;
@@ -48,6 +49,8 @@ ParseConfigLine(string data)
         soundVolume = (float)itemValue;
     else if (itemName == "sleepTime")
         sleepTime = (float)itemValue;
+    else if (itemName == "message")
+        teleportMessage = itemValue;
     else if (itemName == "destination")
     {
         string destinationName = llList2String(items, 2);
@@ -94,6 +97,11 @@ DoTeleport(vector destination, key av)
         llPlaySound(sound, soundVolume);
     }
 
+    if (teleportMessage)
+    {
+        llSay(0, strReplace(teleportMessage, "$DISPLAY_NAME", llGetDisplayName(av)));
+    }
+
     llSleep(sleepTime);
     
     vector start = llGetPos();
@@ -101,6 +109,11 @@ DoTeleport(vector destination, key av)
     llSetRegionPos(destination);
     llUnSit(av);
     llSetRegionPos(start); 
+}
+
+// This is only temporary until Firestorm adds support for llReplaceSubString
+string strReplace(string str, string search, string replace) {
+    return llDumpList2String(llParseStringKeepNulls((str = "") + str, [search], []), replace);
 }
 
 default

@@ -17,6 +17,7 @@ The format is comma separated values with one setting per line. Options availabl
 - `sleepTime`: (float) A time delay before the user is teleported to the destination
 - `destination`: (vector) Coordinates to teleport the user to within the sim.
 - `animationOffset`: (vector) An optional item that can override the default positioning of the avatar sitting
+- `message`: (string) An optional custom message to display when teleporting.
 
 ### Destinations
 There should be a minimum of at least 1 destination in the config. If there are none, it won't break anything but your teleporter won't function either.
@@ -32,3 +33,11 @@ destination,<10.0,100.0, 1500.0>, Skybox
 You may only have up to 12 destinations in your teleport network currently. If you exceed this the script will just skip over any excess ones.
 
 The script relies on unique destination names. If you have more than one name it will always pick the first destination on the list that matches that name.
+
+### Custom message
+The teleporter can send a message to local chat when someone teleports by specifying the `message` parameter in you CONFIG. It also does a little string substitution, so if you include `$DISPLAY_NAME` in your message it will substitute the display name of the avatar sitting
+
+Example:
+```
+message, $DISPLAY_NAME is teleported somewhere!
+```
