@@ -5,6 +5,7 @@ key notecardKey; //Store the notecard's key, so we don't read it again by accide
 string DEFAULT_ANIMATION = "sit";
 string animation; // the first animation in inventory will automatically be used
 // the animation name must be stored globally to be able to stop the animation when standing up
+vector animationOffset = <0.0, 0.0, 0.1>; // Offset position of the avatar sitting on the object
 string sound; // The sound that will play when sitting
 float soundVolume = 1.0;
 float sleepTime = 2.0;
@@ -37,6 +38,8 @@ ParseConfigLine(string data)
         sleepTime = (float)itemValue;
     else if (itemName == "destination")
         destination = (vector)itemValue;
+    else if (itemName == "animationOffset")
+        animationOffset = (vector)itemValue;
 }
 
 default
