@@ -89,8 +89,11 @@ DoTeleportByName(string destinationName, key av)
 
 DoTeleport(vector destination, key av)
 {
-    llPlaySound(sound, soundVolume);
-    llSleep(sleepTime);
+    if (sound)
+    {
+        llPlaySound(sound, soundVolume);
+        llSleep(sleepTime);
+    }
     
     vector start = llGetPos();
     
