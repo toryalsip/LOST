@@ -16,3 +16,4 @@ The format is comma separated values with one setting per line. Options availabl
 - `soundVolume`: (float) When a sound file is present it will play this sound at the specified volume
 - `sleepTime`: (float) A time delay before the user is teleported to the destination
 - `destination`: (vector) Coordinates to teleport the user to within the sim.
+- `animationOffset`: (vector) An optional item that can override the default positioning of the avatar sitting
