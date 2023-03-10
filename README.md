@@ -17,3 +17,18 @@ The format is comma separated values with one setting per line. Options availabl
 - `sleepTime`: (float) A time delay before the user is teleported to the destination
 - `destination`: (vector) Coordinates to teleport the user to within the sim.
 - `animationOffset`: (vector) An optional item that can override the default positioning of the avatar sitting
+
+### Destinations
+There should be a minimum of at least 1 destination in the config. If there are none, it won't break anything but your teleporter won't function either.
+
+You can have multiple `destination` lines in your config, each with different coordinates and a third item which would be the name of the destination and what will go in menu dialog. You do not have to specify this, but if you want users to know roughly where they are going, then you probably should set this.
+
+Example:
+```
+destination,<10.0,100.0, 50.0>, Ground Level
+destination,<10.0,100.0, 1500.0>, Skybox
+```
+
+You may only have up to 12 destinations in your teleport network currently. If you exceed this the script will just skip over any excess ones.
+
+The script relies on unique destination names. If you have more than one name it will always pick the first destination on the list that matches that name.

@@ -9,7 +9,13 @@ vector animationOffset = <0.0, 0.0, 0.1>; // Offset position of the avatar sitti
 string sound; // The sound that will play when sitting
 float soundVolume = 1.0;
 float sleepTime = 2.0;
-vector destination;
+list destinations;
+list destinationNames;
+integer destinationCount;
+integer MAX_DESTINATION_COUNT = 12; // This is to avoid errors when loading menu
+
+integer dialogListener;
+integer DIALOG_CHANNEL = -99;
 
 ReadConfig()
 {
@@ -23,6 +29,11 @@ ReadConfig()
     //This notecard has already been read - call to read was made in error, so don't do anything. (Notecards are assigned a new key each time they are saved.)
 
     llOwnerSay("Reading config, please wait..."); //Notify user that read has started.
+    destinations = [];
+    destinationNames = [];
+    destinationCount = 0;
+    notecardLine = 0;
+
     notecardKey = configKey;
     notecardQueryId = llGetNotecardLine(configName, notecardLine);
 }
@@ -37,9 +48,54 @@ ParseConfigLine(string data)
     else if (itemName == "sleepTime")
         sleepTime = (float)itemValue;
     else if (itemName == "destination")
-        destination = (vector)itemValue;
+    {
+        string destinationName = llList2String(items, 2);
+        if (destinationName == "" )
+        {
+            destinationName = (string)(destinationCount + 1);
+        }
+        if (destinationCount < MAX_DESTINATION_COUNT)
+        {
+            ++destinationCount;
+            destinations += (vector)itemValue;
+            destinationNames += destinationName;
+        }
+        else
+        {
+            llOwnerSay("Warning, skipping destination " + destinationName + 
+                ". Please keep destinations at " + (string)MAX_DESTINATION_COUNT + " or less.");
+        }
+    }
     else if (itemName == "animationOffset")
         animationOffset = (vector)itemValue;
+}
+
+StartTeleportDialog(key av)
+{
+    llListenRemove(dialogListener);
+    dialogListener = llListen(DIALOG_CHANNEL, "", av, "");
+    llDialog(av, "\nPlease select a destination", destinationNames, DIALOG_CHANNEL);
+    llSetTimerEvent(60.0);
+}
+
+DoTeleportByName(string destinationName, key av)
+{
+    DoTeleport(
+        llList2Vector(destinations,llListFindList(destinationNames,[destinationName])),
+        av
+    );
+}
+
+DoTeleport(vector destination, key av)
+{
+    llPlaySound(sound, soundVolume);
+    llSleep(sleepTime);
+    
+    vector start = llGetPos();
+    
+    llSetRegionPos(destination);
+    llUnSit(av);
+    llSetRegionPos(start); 
 }
 
 default
@@ -59,8 +115,10 @@ default
         if (change & CHANGED_LINK)
         {
             key av = llAvatarOnSitTarget();
-            if (av) //evaluated as true if not NULL_KEY or invalid
+            if (av)
+            {
                 llRequestPermissions(av, PERMISSION_TRIGGER_ANIMATION);
+            }
             else // avatar is standing up
             {
                 if (animation)
@@ -73,6 +131,17 @@ default
         }
     }
     
+    listen(integer chan, string name, key id, string msg)
+    {
+        key av = llAvatarOnSitTarget();
+        if (av) 
+        {
+            DoTeleportByName(msg, av);
+        }
+        // This is done to immediately cleanup the dialog
+        llSetTimerEvent(0.1);
+    }
+
     dataserver(key query_id, string data)
     {
         if (query_id == notecardQueryId)
@@ -99,15 +168,30 @@ default
             {
                 llStopAnimation(DEFAULT_ANIMATION);
                 llStartAnimation(animation);
-                llPlaySound(sound, soundVolume);
-                llSleep(sleepTime);
-                
-                vector start = llGetPos();
-                
-                llSetRegionPos(destination);
-                llUnSit(av);
-                llSetRegionPos(start);            
+
+                if (destinationCount <= 0)
+                {
+                    llUnSit(av);
+                    return;
+                }
+                else if (destinationCount == 1)
+                {
+                    vector destination = llList2Vector(destinations, 0);
+                    DoTeleport(destination, av);
+                }
+                else
+                {
+                    StartTeleportDialog(av);
+                }
+
+          
             }
         }
+    }
+
+    timer()
+    {
+        llListenRemove(dialogListener);
+        llSetTimerEvent(0);
     }
 }
