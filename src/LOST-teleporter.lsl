@@ -171,22 +171,22 @@ default
                 llStopAnimation(DEFAULT_ANIMATION);
                 llStartAnimation(animation);
 
-                if (destinationCount <= 0)
-                {
-                    llUnSit(av);
-                    return;
-                }
-                else if (destinationCount == 1)
-                {
-                    vector destination = llList2Vector(destinations, 0);
-                    DoTeleport(destination, av);
-                }
-                else
-                {
-                    StartTeleportDialog(av);
-                }
-
-          
+                
+                
+            }
+            if (destinationCount <= 0)
+            {
+                llUnSit(av);
+                return;
+            }
+            else if (destinationCount == 1)
+            {
+                vector destination = llList2Vector(destinations, 0);
+                DoTeleport(destination, av);
+            }
+            else
+            {
+                StartTeleportDialog(av);
             }
         }
     }
