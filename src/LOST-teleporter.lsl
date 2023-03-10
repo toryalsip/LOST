@@ -1,4 +1,4 @@
-string SCRIPT_VERSION = "v0.0.1-alpha1";
+string SCRIPT_VERSION = "v0.0.1-alpha2";
 key notecardQueryId; //Identifier for the dataserver event
 string configName = "CONFIG"; //Name of a notecard in the object's inventory.
 integer notecardLine; //Initialize the counter value at 0
@@ -92,8 +92,9 @@ DoTeleport(vector destination, key av)
     if (sound)
     {
         llPlaySound(sound, soundVolume);
-        llSleep(sleepTime);
     }
+
+    llSleep(sleepTime);
     
     vector start = llGetPos();
     
@@ -109,7 +110,7 @@ default
         llSay(0, "Starting LOST-teleporter script version " + SCRIPT_VERSION);
         ReadConfig();
         // position tweaked to stand just a bit away from the object
-        llSitTarget(<-0.9, 0.0, 0.1>, ZERO_ROTATION);
+        llSitTarget(animationOffset, ZERO_ROTATION);
         // Preload inventory item names so we don't have to do it later
         animation = llGetInventoryName(INVENTORY_ANIMATION,0);
         sound = llGetInventoryName(INVENTORY_SOUND,0);
