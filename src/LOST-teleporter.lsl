@@ -77,6 +77,11 @@ ParseConfigLine(string data)
         avatarRotation = (vector)itemValue;
 }
 
+SetSitTarget()
+{
+    llSitTarget(animationOffset, llEuler2Rot(avatarRotation * DEG_TO_RAD));
+}
+
 StartTeleportDialog(key av)
 {
     llListenRemove(dialogListener);
@@ -168,7 +173,7 @@ default
         {
             if (data == EOF) //Reached end of notecard (End Of File).
             {
-                llSitTarget(animationOffset, llEuler2Rot(avatarRotation * DEG_TO_RAD));
+                SetSitTarget();
                 llOwnerSay("Done reading config, you may now use the teleporter!"); //Notify user.
             }
             else
