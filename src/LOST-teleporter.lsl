@@ -235,9 +235,6 @@ default
             {
                 llStopAnimation(DEFAULT_ANIMATION);
                 llStartAnimation(animation);
-
-                
-                
             }
             if (destinationCount <= 0)
             {
@@ -299,6 +296,31 @@ state test
             llSetTimerEvent(0.1);
         }
     }
+    
+    changed(integer change)
+    {
+        if (change & CHANGED_LINK)
+        {
+            key av = llAvatarOnSitTarget();
+            if (av)
+            {
+                llRequestPermissions(av, PERMISSION_TRIGGER_ANIMATION);
+            }
+        }
+    }
+    
+    run_time_permissions(integer perm)
+    {
+        if (perm & PERMISSION_TRIGGER_ANIMATION)
+        {
+            if (animation)
+            {
+                llStopAnimation(DEFAULT_ANIMATION);
+                llStartAnimation(animation);
+            }
+        }
+    }
+
 
     timer()
     {
