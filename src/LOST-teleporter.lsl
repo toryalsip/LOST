@@ -87,7 +87,6 @@ StartTeleportDialog(key av)
     llListenRemove(dialogListener);
     dialogListener = llListen(DIALOG_CHANNEL, "", av, "");
     llDialog(av, "\nPlease select a destination", destinationNames, DIALOG_CHANNEL);
-    llSetTimerEvent(60.0);
 }
 
 DoTeleportByName(string destinationName, key av)
@@ -146,6 +145,7 @@ default
             }
             else // avatar is standing up
             {
+                llListenRemove(dialogListener);
                 if (animation)
                     llStopAnimation(animation); // stop the started animation
             }
@@ -160,7 +160,6 @@ default
     {
         DoTeleportByName(msg, id);
         // This is done to immediately cleanup the dialog
-        llSetTimerEvent(0.1);
     }
 
     dataserver(key query_id, string data)
@@ -209,11 +208,5 @@ default
                 StartTeleportDialog(av);
             }
         }
-    }
-
-    timer()
-    {
-        llListenRemove(dialogListener);
-        llSetTimerEvent(0);
     }
 }
