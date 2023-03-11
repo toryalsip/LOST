@@ -1,4 +1,4 @@
-string SCRIPT_VERSION = "v0.0.1-alpha3";
+string SCRIPT_VERSION = "v0.0.1-alpha4";
 key notecardQueryId; //Identifier for the dataserver event
 string configName = "CONFIG"; //Name of a notecard in the object's inventory.
 integer notecardLine; //Initialize the counter value at 0
