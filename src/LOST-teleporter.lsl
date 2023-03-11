@@ -6,7 +6,8 @@ key notecardKey; //Store the notecard's key, so we don't read it again by accide
 string DEFAULT_ANIMATION = "sit";
 string animation; // the first animation in inventory will automatically be used
 // the animation name must be stored globally to be able to stop the animation when standing up
-vector animationOffset = <0.0, 0.0, 0.1>; // Offset position of the avatar sitting on the object
+vector animationOffset = <0.0, -0.1, 0.1>; // Offset position of the avatar sitting on the object
+vector avatarRotation = <0.0, 0.0, 0.0>; // Rotation for sittarget 
 string sound; // The sound that will play when sitting
 float soundVolume = 1.0;
 float sleepTime = 2.0;
@@ -72,6 +73,8 @@ ParseConfigLine(string data)
     }
     else if (itemName == "animationOffset")
         animationOffset = (vector)itemValue;
+    else if (itemName == "avatarRotation")
+        avatarRotation = (vector)itemValue;
 }
 
 StartTeleportDialog(key av)
@@ -165,7 +168,7 @@ default
         {
             if (data == EOF) //Reached end of notecard (End Of File).
             {
-                llSitTarget(animationOffset, ZERO_ROTATION);
+                llSitTarget(animationOffset, llEuler2Rot(avatarRotation * DEG_TO_RAD));
                 llOwnerSay("Done reading config, you may now use the teleporter!"); //Notify user.
             }
             else
