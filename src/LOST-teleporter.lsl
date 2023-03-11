@@ -304,7 +304,14 @@ state test
             key av = llAvatarOnSitTarget();
             if (av)
             {
-                llRequestPermissions(av, PERMISSION_TRIGGER_ANIMATION);
+                if (av == llGetOwner())
+                {
+                    llRequestPermissions(av, PERMISSION_TRIGGER_ANIMATION);
+                }
+                else
+                {
+                    llUnSit(av);
+                }
             }
         }
     }
