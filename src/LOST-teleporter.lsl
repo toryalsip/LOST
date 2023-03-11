@@ -158,11 +158,7 @@ default
     
     listen(integer chan, string name, key id, string msg)
     {
-        key av = llAvatarOnSitTarget();
-        if (av) 
-        {
-            DoTeleportByName(msg, av);
-        }
+        DoTeleportByName(msg, id);
         // This is done to immediately cleanup the dialog
         llSetTimerEvent(0.1);
     }
