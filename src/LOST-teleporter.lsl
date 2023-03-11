@@ -277,8 +277,11 @@ state test
     touch(integer num_detected)
     {
         key av = llDetectedKey(0);
-        dialogListener = llListen(ADMIN_CHANNEL, "", av, "");     
-        llTextBox(av, "Enter setting name and value separated by commas or DONE to exit test mode.", ADMIN_CHANNEL);
+        if (av == llGetOwner())
+        {
+            dialogListener = llListen(ADMIN_CHANNEL, "", av, "");     
+            llTextBox(av, "Enter setting name and value separated by commas or DONE to exit test mode.", ADMIN_CHANNEL);
+        }
     }
     
     listen(integer chan, string name, key id, string msg)
