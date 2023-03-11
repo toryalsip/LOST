@@ -135,6 +135,18 @@ OpenAdminMenu()
 
 }
 
+UpdateSetting(string msg)
+{
+    list items = llCSV2List(msg);
+    string itemName = llList2String(items, 0);
+    string itemValue = llList2String(items, 1);
+    if (itemName == "animationOffset")
+        animationOffset = (vector)itemValue;
+    else if (itemName == "avatarRotation")
+        avatarRotation = (vector)itemValue;
+    SetSitTarget();
+}
+
 // This is only temporary until Firestorm adds support for llReplaceSubString
 string strReplace(string str, string search, string replace) {
     return llDumpList2String(llParseStringKeepNulls((str = "") + str, [search], []), replace);
@@ -267,17 +279,22 @@ state test
 
     touch(integer num_detected)
     {
-        OpenAdminMenu();
+        key av = llDetectedKey(0);
+        dialogListener = llListen(ADMIN_CHANNEL, "", av, "");     
+        llTextBox(av, "Enter setting name and value separated by commas or DONE to exit test mode.", ADMIN_CHANNEL);
     }
     
     listen(integer chan, string name, key id, string msg)
     {
-        llOwnerSay("Channel " + (string)chan + " message received! Name: " + name + "Msg: " + msg);
         if (chan == ADMIN_CHANNEL)
         {
-            if (msg == "default")
+            if (msg == "DONE")
             {
                 state default;
+            }
+            else
+            {
+                UpdateSetting(msg);
             }
             llSetTimerEvent(0.1);
         }
