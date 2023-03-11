@@ -1,4 +1,5 @@
 string SCRIPT_VERSION = "v0.0.1-alpha4";
+string scriptMode;
 key notecardQueryId; //Identifier for the dataserver event
 string configName = "CONFIG"; //Name of a notecard in the object's inventory.
 integer notecardLine; //Initialize the counter value at 0
@@ -19,6 +20,10 @@ integer MAX_DESTINATION_COUNT = 12; // This is to avoid errors when loading menu
 
 integer dialogListener;
 integer DIALOG_CHANNEL = -99;
+integer ADMIN_CHANNEL;
+
+vector COLOR_GREEN = <0.0, 1.0, 0.0>;
+float OPAQUE = 1.0;
 
 ReadConfig()
 {
@@ -118,6 +123,18 @@ DoTeleport(vector destination, key av)
     llSetRegionPos(start); 
 }
 
+OpenAdminMenu()
+{
+    key av = llDetectedKey(0);
+    // Only the object owner should be able to open the admin tools menu
+    if (av == llGetOwner())
+    {
+        dialogListener = llListen(ADMIN_CHANNEL, "", av, "");
+        llDialog(av, "\nCurrent Mode: " + scriptMode + "\n\nSelect a mode", ["default", "test"], ADMIN_CHANNEL);
+    }
+
+}
+
 // This is only temporary until Firestorm adds support for llReplaceSubString
 string strReplace(string str, string search, string replace) {
     return llDumpList2String(llParseStringKeepNulls((str = "") + str, [search], []), replace);
@@ -128,6 +145,9 @@ default
     state_entry()
     {
         llSay(0, "Starting LOST-teleporter script version " + SCRIPT_VERSION);
+        llSetText("", ZERO_VECTOR, 0);
+        scriptMode = "default";
+        ADMIN_CHANNEL = (integer)llFrand(2147483646);
         ReadConfig();
         // Preload inventory item names so we don't have to do it later
         animation = llGetInventoryName(INVENTORY_ANIMATION,0);
@@ -158,8 +178,22 @@ default
     
     listen(integer chan, string name, key id, string msg)
     {
-        DoTeleportByName(msg, id);
-        // This is done to immediately cleanup the dialog
+        if (chan == DIALOG_CHANNEL)
+        {
+            key av = llAvatarOnSitTarget();
+            if (av) 
+            {
+                DoTeleportByName(msg, av);
+            }
+        }
+        else if (chan == ADMIN_CHANNEL)
+        {
+            if (msg == "test")
+            {
+                state test;
+            }
+            llSetTimerEvent(0.1);
+        }
     }
 
     dataserver(key query_id, string data)
@@ -208,5 +242,50 @@ default
                 StartTeleportDialog(av);
             }
         }
+    }
+
+    timer()
+    {
+        llListenRemove(dialogListener);
+        llSetTimerEvent(0);
+    }
+
+    touch(integer num_detected)
+    {
+        OpenAdminMenu();
+    }
+}
+
+state test
+{
+    state_entry()
+    {
+        scriptMode = "test";
+        llSetText("Running in TEST mode, teleport function disabled.", COLOR_GREEN, OPAQUE);
+        llOwnerSay("Now running in TEST mode");
+    }
+
+    touch(integer num_detected)
+    {
+        OpenAdminMenu();
+    }
+    
+    listen(integer chan, string name, key id, string msg)
+    {
+        llOwnerSay("Channel " + (string)chan + " message received! Name: " + name + "Msg: " + msg);
+        if (chan == ADMIN_CHANNEL)
+        {
+            if (msg == "default")
+            {
+                state default;
+            }
+            llSetTimerEvent(0.1);
+        }
+    }
+
+    timer()
+    {
+        llListenRemove(dialogListener);
+        llSetTimerEvent(0);
     }
 }
