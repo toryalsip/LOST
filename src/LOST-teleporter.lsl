@@ -20,7 +20,9 @@ integer MAX_DESTINATION_COUNT = 12; // This is to avoid errors when loading menu
 
 integer dialogListener;
 integer DIALOG_CHANNEL = -99;
+integer SETTING_CHANNEL = -100;
 integer ADMIN_CHANNEL;
+string adjustMode;
 
 vector COLOR_GREEN = <0.0, 1.0, 0.0>;
 float OPAQUE = 1.0;
@@ -135,17 +137,133 @@ OpenAdminMenu()
 
 }
 
-UpdateSetting(string msg)
+OpenAdjustMenu()
 {
-    list items = llCSV2List(msg);
-    string itemName = llList2String(items, 0);
-    string itemValue = llList2String(items, 1);
-    if (itemName == "animationOffset")
-        animationOffset = (vector)itemValue;
-    else if (itemName == "avatarRotation")
-        avatarRotation = (vector)itemValue;
-    SetSitTarget();
+    key av = llAvatarOnSitTarget();
+    if (av == llGetOwner())
+    {
+        dialogListener = llListen(SETTING_CHANNEL, "", av, "");
+        llDialog(av, "\nSelect pose setting to adjust.\nClick DUMP to show current settings",
+            ["offset", "rotation", "DUMP"], SETTING_CHANNEL);
+    }
 }
+
+OpenAdjustSetting(string msg, key av)
+{
+    string dialogMessage = "";
+    list buttons = [
+        "-X", "-Y", "-Z", 
+        "+X", "+Y", "+Z",
+        "[ BACK ]"
+    ];
+    if (msg == "offset")
+    {
+        dialogMessage = "Adjust animationOffset";
+        adjustMode = "offset";
+    }
+    else if (msg == "rotation")
+    {
+        dialogMessage = "Adjsut avatarRotation";
+        adjustMode = "rotation";
+    }
+    else if (msg == "DUMP")
+    {
+        llOwnerSay("Current sit target settings. Copy these into your CONFIG notecard");
+        llOwnerSay("animationOffset, " + (string)animationOffset);
+        llOwnerSay("avatarRotaton, " + (string)avatarRotation);
+        OpenAdjustMenu();
+        return;
+    }
+    llDialog(av, dialogMessage, buttons, SETTING_CHANNEL);
+}
+
+HandleAdjustOffset(string msg, key av)
+{
+    if (msg != "[ BACK ]")
+    {
+        animationOffset = IncrementVector(animationOffset, msg, 0.1);
+        UpdateSitTarget(animationOffset, llEuler2Rot(avatarRotation * DEG_TO_RAD));
+        OpenAdjustSetting(adjustMode, av);
+    }
+    else
+    {
+        adjustMode = "";
+        OpenAdjustMenu();
+    }
+}
+
+HandleAdjustRotation(string msg, key av)
+{
+    if (msg != "[ BACK ]")
+    {
+        avatarRotation = IncrementVector(avatarRotation, msg, 5.0);
+        UpdateSitTarget(animationOffset, llEuler2Rot(avatarRotation * DEG_TO_RAD));
+        OpenAdjustSetting(adjustMode, av);
+    }
+    else
+    {
+        adjustMode = "";
+        OpenAdjustMenu();
+    }
+
+}
+
+vector IncrementVector(vector value, string msg, float amount)
+{
+    if (msg == "+X")
+        value.x += amount;
+    else if (msg == "+Y")
+        value.y += amount;
+    else if (msg == "+Z")
+        value.z += amount;
+    else if (msg == "-X")
+        value.x -= amount;
+    else if (msg == "-Y")
+        value.y -= amount;
+    else if (msg == "-Z")
+        value.z -= amount;
+    return value;
+}
+
+//Sets / Updates the sit target moving the avatar on it if necessary.
+UpdateSitTarget(vector pos, rotation rot)
+{//Using this while the object is moving may give unpredictable results.
+    llSitTarget(pos, rot);//Set the sit target
+    key user = llAvatarOnSitTarget();
+    if (user)//true if there is a user seated on the sit target; if so, update their position
+    {
+        vector size = llGetAgentSize(user);
+        if (size)//This tests to make sure the user really exists.
+        {
+            //We need to make the position and rotation local to the current prim
+            rotation localrot = ZERO_ROTATION;
+            vector   localpos = ZERO_VECTOR;
+            if (llGetLinkNumber() > 1)//only need the local rot if it's not the root.
+            {
+                localrot = llGetLocalRot();
+                localpos = llGetLocalPos();
+            }
+            integer linkNum = llGetNumberOfPrims();
+            do
+            {
+                if (user == llGetLinkKey(linkNum))//just checking to make sure the index is valid.
+                {
+                    //<0.008906, -0.049831, 0.088967> are the coefficients for a parabolic curve that best fits real avatars. It is not a perfect fit.
+                    float fAdjust = ((((0.008906 * size.z) + -0.049831) * size.z) + 0.088967) * size.z;
+                    llSetLinkPrimitiveParamsFast(linkNum,
+                        [PRIM_POS_LOCAL, (pos + <0.0, 0.0, 0.4> - (llRot2Up(rot) * fAdjust)) * localrot + localpos,
+                         PRIM_ROT_LOCAL, rot * localrot]);
+                    jump end;//cheaper but a tad slower than return
+                }
+            } while(--linkNum);
+        }
+        else
+        {//It is rare that the sit target will bork, but if it does happen, this can help to fix it.
+            llUnSit(user);
+        }
+    }
+    @end;
+}//Written by Strife Onizuka, size adjustment and improvements provided by Talarus Luan
 
 // This is only temporary until Firestorm adds support for llReplaceSubString
 string strReplace(string str, string search, string replace) {
@@ -253,15 +371,15 @@ default
         }
     }
 
+    touch(integer num_detected)
+    {
+        OpenAdminMenu();
+    }
+
     timer()
     {
         llListenRemove(dialogListener);
         llSetTimerEvent(0);
-    }
-
-    touch(integer num_detected)
-    {
-        OpenAdminMenu();
     }
 }
 
@@ -276,27 +394,27 @@ state test
 
     touch(integer num_detected)
     {
-        key av = llDetectedKey(0);
-        if (av == llGetOwner())
-        {
-            dialogListener = llListen(ADMIN_CHANNEL, "", av, "");     
-            llTextBox(av, "Enter setting name and value separated by commas or DONE to exit test mode.", ADMIN_CHANNEL);
-        }
+        OpenAdminMenu();
     }
     
     listen(integer chan, string name, key id, string msg)
     {
         if (chan == ADMIN_CHANNEL)
         {
-            if (msg == "DONE")
+            if (msg == "default")
             {
                 state default;
             }
-            else
-            {
-                UpdateSetting(msg);
-            }
             llSetTimerEvent(0.1);
+        }
+        else if (chan == SETTING_CHANNEL)
+        {
+            if (adjustMode == "offset")
+                HandleAdjustOffset(msg, id);
+            else if (adjustMode == "rotation")
+                HandleAdjustRotation(msg, id);
+            else
+                OpenAdjustSetting(msg, id);
         }
     }
     
@@ -316,6 +434,12 @@ state test
                     llUnSit(av);
                 }
             }
+            else // avatar is standing up
+            {
+                llListenRemove(dialogListener);
+                if (animation)
+                    llStopAnimation(animation); // stop the started animation
+            }
         }
     }
     
@@ -328,6 +452,7 @@ state test
                 llStopAnimation(DEFAULT_ANIMATION);
                 llStartAnimation(animation);
             }
+            OpenAdjustMenu();
         }
     }
 
