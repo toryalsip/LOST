@@ -1,4 +1,5 @@
 string SCRIPT_VERSION = "v0.0.1-alpha4";
+string scriptMode;
 key notecardQueryId; //Identifier for the dataserver event
 string configName = "CONFIG"; //Name of a notecard in the object's inventory.
 integer notecardLine; //Initialize the counter value at 0
@@ -19,6 +20,12 @@ integer MAX_DESTINATION_COUNT = 12; // This is to avoid errors when loading menu
 
 integer dialogListener;
 integer DIALOG_CHANNEL = -99;
+integer SETTING_CHANNEL = -100;
+integer ADMIN_CHANNEL;
+string adjustMode;
+
+vector COLOR_GREEN = <0.0, 1.0, 0.0>;
+float OPAQUE = 1.0;
 
 ReadConfig()
 {
@@ -77,12 +84,16 @@ ParseConfigLine(string data)
         avatarRotation = (vector)itemValue;
 }
 
+SetSitTarget()
+{
+    llSitTarget(animationOffset, llEuler2Rot(avatarRotation * DEG_TO_RAD));
+}
+
 StartTeleportDialog(key av)
 {
     llListenRemove(dialogListener);
     dialogListener = llListen(DIALOG_CHANNEL, "", av, "");
     llDialog(av, "\nPlease select a destination", destinationNames, DIALOG_CHANNEL);
-    llSetTimerEvent(60.0);
 }
 
 DoTeleportByName(string destinationName, key av)
@@ -114,6 +125,146 @@ DoTeleport(vector destination, key av)
     llSetRegionPos(start); 
 }
 
+OpenAdminMenu()
+{
+    key av = llDetectedKey(0);
+    // Only the object owner should be able to open the admin tools menu
+    if (av == llGetOwner())
+    {
+        dialogListener = llListen(ADMIN_CHANNEL, "", av, "");
+        llDialog(av, "\nCurrent Mode: " + scriptMode + "\n\nSelect a mode", ["default", "test"], ADMIN_CHANNEL);
+    }
+
+}
+
+OpenAdjustMenu()
+{
+    key av = llAvatarOnSitTarget();
+    if (av == llGetOwner())
+    {
+        dialogListener = llListen(SETTING_CHANNEL, "", av, "");
+        llDialog(av, "\nSelect pose setting to adjust.\nClick DUMP to show current settings",
+            ["offset", "rotation", "DUMP"], SETTING_CHANNEL);
+    }
+}
+
+OpenAdjustSetting(string msg, key av)
+{
+    string dialogMessage = "";
+    list buttons = [
+        "-X", "-Y", "-Z", 
+        "+X", "+Y", "+Z",
+        "[ BACK ]"
+    ];
+    if (msg == "offset")
+    {
+        dialogMessage = "Adjust animationOffset";
+        adjustMode = "offset";
+    }
+    else if (msg == "rotation")
+    {
+        dialogMessage = "Adjsut avatarRotation";
+        adjustMode = "rotation";
+    }
+    else if (msg == "DUMP")
+    {
+        llOwnerSay("Current sit target settings. Copy these into your CONFIG notecard");
+        llOwnerSay("animationOffset, " + (string)animationOffset);
+        llOwnerSay("avatarRotaton, " + (string)avatarRotation);
+        OpenAdjustMenu();
+        return;
+    }
+    llDialog(av, dialogMessage, buttons, SETTING_CHANNEL);
+}
+
+HandleAdjustOffset(string msg, key av)
+{
+    if (msg != "[ BACK ]")
+    {
+        animationOffset = IncrementVector(animationOffset, msg, 0.1);
+        UpdateSitTarget(animationOffset, llEuler2Rot(avatarRotation * DEG_TO_RAD));
+        OpenAdjustSetting(adjustMode, av);
+    }
+    else
+    {
+        adjustMode = "";
+        OpenAdjustMenu();
+    }
+}
+
+HandleAdjustRotation(string msg, key av)
+{
+    if (msg != "[ BACK ]")
+    {
+        avatarRotation = IncrementVector(avatarRotation, msg, 5.0);
+        UpdateSitTarget(animationOffset, llEuler2Rot(avatarRotation * DEG_TO_RAD));
+        OpenAdjustSetting(adjustMode, av);
+    }
+    else
+    {
+        adjustMode = "";
+        OpenAdjustMenu();
+    }
+
+}
+
+vector IncrementVector(vector value, string msg, float amount)
+{
+    if (msg == "+X")
+        value.x += amount;
+    else if (msg == "+Y")
+        value.y += amount;
+    else if (msg == "+Z")
+        value.z += amount;
+    else if (msg == "-X")
+        value.x -= amount;
+    else if (msg == "-Y")
+        value.y -= amount;
+    else if (msg == "-Z")
+        value.z -= amount;
+    return value;
+}
+
+//Sets / Updates the sit target moving the avatar on it if necessary.
+UpdateSitTarget(vector pos, rotation rot)
+{//Using this while the object is moving may give unpredictable results.
+    llSitTarget(pos, rot);//Set the sit target
+    key user = llAvatarOnSitTarget();
+    if (user)//true if there is a user seated on the sit target; if so, update their position
+    {
+        vector size = llGetAgentSize(user);
+        if (size)//This tests to make sure the user really exists.
+        {
+            //We need to make the position and rotation local to the current prim
+            rotation localrot = ZERO_ROTATION;
+            vector   localpos = ZERO_VECTOR;
+            if (llGetLinkNumber() > 1)//only need the local rot if it's not the root.
+            {
+                localrot = llGetLocalRot();
+                localpos = llGetLocalPos();
+            }
+            integer linkNum = llGetNumberOfPrims();
+            do
+            {
+                if (user == llGetLinkKey(linkNum))//just checking to make sure the index is valid.
+                {
+                    //<0.008906, -0.049831, 0.088967> are the coefficients for a parabolic curve that best fits real avatars. It is not a perfect fit.
+                    float fAdjust = ((((0.008906 * size.z) + -0.049831) * size.z) + 0.088967) * size.z;
+                    llSetLinkPrimitiveParamsFast(linkNum,
+                        [PRIM_POS_LOCAL, (pos + <0.0, 0.0, 0.4> - (llRot2Up(rot) * fAdjust)) * localrot + localpos,
+                         PRIM_ROT_LOCAL, rot * localrot]);
+                    jump end;//cheaper but a tad slower than return
+                }
+            } while(--linkNum);
+        }
+        else
+        {//It is rare that the sit target will bork, but if it does happen, this can help to fix it.
+            llUnSit(user);
+        }
+    }
+    @end;
+}//Written by Strife Onizuka, size adjustment and improvements provided by Talarus Luan
+
 // This is only temporary until Firestorm adds support for llReplaceSubString
 string strReplace(string str, string search, string replace) {
     return llDumpList2String(llParseStringKeepNulls((str = "") + str, [search], []), replace);
@@ -124,6 +275,9 @@ default
     state_entry()
     {
         llSay(0, "Starting LOST-teleporter script version " + SCRIPT_VERSION);
+        llSetText("", ZERO_VECTOR, 0);
+        scriptMode = "default";
+        ADMIN_CHANNEL = (integer)llFrand(2147483646);
         ReadConfig();
         // Preload inventory item names so we don't have to do it later
         animation = llGetInventoryName(INVENTORY_ANIMATION,0);
@@ -141,6 +295,7 @@ default
             }
             else // avatar is standing up
             {
+                llListenRemove(dialogListener);
                 if (animation)
                     llStopAnimation(animation); // stop the started animation
             }
@@ -153,13 +308,22 @@ default
     
     listen(integer chan, string name, key id, string msg)
     {
-        key av = llAvatarOnSitTarget();
-        if (av) 
+        if (chan == DIALOG_CHANNEL)
         {
-            DoTeleportByName(msg, av);
+            key av = llAvatarOnSitTarget();
+            if (av) 
+            {
+                DoTeleportByName(msg, av);
+            }
         }
-        // This is done to immediately cleanup the dialog
-        llSetTimerEvent(0.1);
+        else if (chan == ADMIN_CHANNEL)
+        {
+            if (msg == "test")
+            {
+                state test;
+            }
+            llSetTimerEvent(0.1);
+        }
     }
 
     dataserver(key query_id, string data)
@@ -168,7 +332,7 @@ default
         {
             if (data == EOF) //Reached end of notecard (End Of File).
             {
-                llSitTarget(animationOffset, llEuler2Rot(avatarRotation * DEG_TO_RAD));
+                SetSitTarget();
                 llOwnerSay("Done reading config, you may now use the teleporter!"); //Notify user.
             }
             else
@@ -189,9 +353,6 @@ default
             {
                 llStopAnimation(DEFAULT_ANIMATION);
                 llStartAnimation(animation);
-
-                
-                
             }
             if (destinationCount <= 0)
             {
@@ -209,6 +370,92 @@ default
             }
         }
     }
+
+    touch(integer num_detected)
+    {
+        OpenAdminMenu();
+    }
+
+    timer()
+    {
+        llListenRemove(dialogListener);
+        llSetTimerEvent(0);
+    }
+}
+
+state test
+{
+    state_entry()
+    {
+        scriptMode = "test";
+        llSetText("Running in TEST mode, teleport function disabled.", COLOR_GREEN, OPAQUE);
+        llOwnerSay("Now running in TEST mode");
+    }
+
+    touch(integer num_detected)
+    {
+        OpenAdminMenu();
+    }
+    
+    listen(integer chan, string name, key id, string msg)
+    {
+        if (chan == ADMIN_CHANNEL)
+        {
+            if (msg == "default")
+            {
+                state default;
+            }
+            llSetTimerEvent(0.1);
+        }
+        else if (chan == SETTING_CHANNEL)
+        {
+            if (adjustMode == "offset")
+                HandleAdjustOffset(msg, id);
+            else if (adjustMode == "rotation")
+                HandleAdjustRotation(msg, id);
+            else
+                OpenAdjustSetting(msg, id);
+        }
+    }
+    
+    changed(integer change)
+    {
+        if (change & CHANGED_LINK)
+        {
+            key av = llAvatarOnSitTarget();
+            if (av)
+            {
+                if (av == llGetOwner())
+                {
+                    llRequestPermissions(av, PERMISSION_TRIGGER_ANIMATION);
+                }
+                else
+                {
+                    llUnSit(av);
+                }
+            }
+            else // avatar is standing up
+            {
+                llListenRemove(dialogListener);
+                if (animation)
+                    llStopAnimation(animation); // stop the started animation
+            }
+        }
+    }
+    
+    run_time_permissions(integer perm)
+    {
+        if (perm & PERMISSION_TRIGGER_ANIMATION)
+        {
+            if (animation)
+            {
+                llStopAnimation(DEFAULT_ANIMATION);
+                llStartAnimation(animation);
+            }
+            OpenAdjustMenu();
+        }
+    }
+
 
     timer()
     {

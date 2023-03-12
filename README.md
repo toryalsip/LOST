@@ -42,3 +42,22 @@ Example:
 ```
 message, $DISPLAY_NAME is teleported somewhere!
 ```
+
+### Adjusting Poses and Test Mode
+Getting the offset and rotation for a pose can be a lot of trial and error, so the test mode is there to help you out. To access test mode just
+
+1. Touch the teleporter (if your default action on the object is sit you will want to right-click and select Touch)
+2. In the menu that opens up select the `test` option.
+3. Green text will appear above the teleporter saying `Running in TEST mode, teleport function disabled.` In this mode:
+    1. Only the owner may sit on the teleporter
+    2. Teleport actions will not happen
+    3. Sitting on the teleporter will open the Adjust setting menu
+
+Adjust setting will have 3 options:
+1. offset (tweak the offset along the X, Y, and Z axis)
+2. rotation (tweak the rotation in 5 degree ingrements along the X, Y, and Z axis)
+3. DUMP (print the current settings for avatarRotation and animationOffset to chat)
+
+Make sure to stand up off the teleporter once you are done adjusting.
+
+To exit out of Test mode just touch the object again and select `default` instead.
