@@ -49,9 +49,9 @@ Getting the offset and rotation for a pose can be a lot of trial and error, so t
 1. Touch the teleporter (if your default action on the object is sit you will want to right-click and select Touch)
 2. In the menu that opens up select the `test` option.
 3. Green text will appear above the teleporter saying `Running in TEST mode, teleport function disabled.` In this mode:
-    a. Only the owner may sit on the teleporter
-    b. Teleport actions will not happen
-    c. Sitting on the teleporter will open the Adjust setting menu
+    1. Only the owner may sit on the teleporter
+    2. Teleport actions will not happen
+    3. Sitting on the teleporter will open the Adjust setting menu
 
 Adjust setting will have 3 options:
 1. offset (tweak the offset along the X, Y, and Z axis)
