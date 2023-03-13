@@ -17,6 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - uses: toryalsip/lslint-action@v0.1beta
+      - uses: toryalsip/lslint-action@v0.1beta2
         with:
-          filename: 'src/LOST-teleporter.lsl'
+          filename: 'src/*.lsl'
