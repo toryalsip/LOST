@@ -22,7 +22,7 @@ integer dialogListener;
 integer DIALOG_CHANNEL = -99;
 integer SETTING_CHANNEL = -100;
 integer ADMIN_CHANNEL;
-string adjustMode;
+string adjustMode
 
 vector COLOR_GREEN = <0.0, 1.0, 0.0>;
 float OPAQUE = 1.0;
