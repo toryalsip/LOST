@@ -19,6 +19,7 @@ The format is comma separated values with one setting per line. Options availabl
 - `animationOffset`: (vector) An optional item that can override the default positioning of the avatar sitting
 - `avatarRotation`: (vector) An optional item to specify avatar rotation if needed depending on your animation
 - `message`: (string) An optional custom message to display when teleporting.
+- `menuText`: (string) Optional text to display in menu when object is right-clicked. Default: Teleport
 
 ### Destinations
 There should be a minimum of at least 1 destination in the config. If there are none, it won't break anything but your teleporter won't function either.
