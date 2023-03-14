@@ -17,6 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - uses: toryalsip/lslint-action@v1
+      - uses: toryalsip/lslint-action@v2-beta2
         with:
-          filepath: "src/*.lsl"
+          filepath: "src/"
