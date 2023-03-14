@@ -12,6 +12,7 @@ vector avatarRotation = <0.0, 0.0, 0.0>; // Rotation for sittarget
 string sound; // The sound that will play when sitting
 float soundVolume = 1.0;
 float sleepTime = 2.0;
+string menuText = "Teleport";
 string teleportMessage;
 list destinations;
 list destinationNames;
@@ -82,11 +83,14 @@ ParseConfigLine(string data)
         animationOffset = (vector)itemValue;
     else if (itemName == "avatarRotation")
         avatarRotation = (vector)itemValue;
+    else if (itemName == "menuText")
+        menuText = itemValue;
 }
 
-SetSitTarget()
+SetSitValues()
 {
     llSitTarget(animationOffset, llEuler2Rot(avatarRotation * DEG_TO_RAD));
+    llSetSitText(menuText);
 }
 
 StartTeleportDialog(key av)
@@ -332,7 +336,7 @@ default
         {
             if (data == EOF) //Reached end of notecard (End Of File).
             {
-                SetSitTarget();
+                SetSitValues();
                 llOwnerSay("Done reading config, you may now use the teleporter!"); //Notify user.
             }
             else
