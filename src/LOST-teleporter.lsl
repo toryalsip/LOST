@@ -7,8 +7,8 @@ key notecardKey; //Store the notecard's key, so we don't read it again by accide
 string DEFAULT_ANIMATION = "sit";
 string animation; // the first animation in inventory will automatically be used
 // the animation name must be stored globally to be able to stop the animation when standing up
-vector animationOffset = <0.0, -0.1, 0.1>; // Offset position of the avatar sitting on the object
-vector avatarRotation = <0.0, 0.0, 0.0>; // Rotation for sittarget 
+vector avOffset = <0.0, -0.1, 0.1>; // Offset position of the avatar sitting on the object
+vector avRotation = <0.0, 0.0, 0.0>; // Rotation for sittarget 
 string sound; // The sound that will play when sitting
 float soundVolume = 1.0;
 float sleepTime = 2.0;
@@ -79,17 +79,17 @@ ParseConfigLine(string data)
                 ". Please keep destinations at " + (string)MAX_DESTINATION_COUNT + " or less.");
         }
     }
-    else if (itemName == "animationOffset")
-        animationOffset = (vector)itemValue;
-    else if (itemName == "avatarRotation")
-        avatarRotation = (vector)itemValue;
+    else if (itemName == "avOffset")
+        avOffset = (vector)itemValue;
+    else if (itemName == "avRotation")
+        avRotation = (vector)itemValue;
     else if (itemName == "menuText")
         menuText = itemValue;
 }
 
 SetSitValues()
 {
-    llSitTarget(animationOffset, llEuler2Rot(avatarRotation * DEG_TO_RAD));
+    llSitTarget(avOffset, llEuler2Rot(avRotation * DEG_TO_RAD));
     llSetSitText(menuText);
 }
 
@@ -162,19 +162,19 @@ OpenAdjustSetting(string msg, key av)
     ];
     if (msg == "offset")
     {
-        dialogMessage = "Adjust animationOffset";
+        dialogMessage = "Adjust avOffset";
         adjustMode = "offset";
     }
     else if (msg == "rotation")
     {
-        dialogMessage = "Adjsut avatarRotation";
+        dialogMessage = "Adjsut avRotation";
         adjustMode = "rotation";
     }
     else if (msg == "DUMP")
     {
         llOwnerSay("Current sit target settings. Copy these into your CONFIG notecard");
-        llOwnerSay("animationOffset, " + (string)animationOffset);
-        llOwnerSay("avatarRotaton, " + (string)avatarRotation);
+        llOwnerSay("avOffset, " + (string)avOffset);
+        llOwnerSay("avatarRotaton, " + (string)avRotation);
         OpenAdjustMenu();
         return;
     }
@@ -185,8 +185,8 @@ HandleAdjustOffset(string msg, key av)
 {
     if (msg != "[ BACK ]")
     {
-        animationOffset = IncrementVector(animationOffset, msg, 0.1);
-        UpdateSitTarget(animationOffset, llEuler2Rot(avatarRotation * DEG_TO_RAD));
+        avOffset = IncrementVector(avOffset, msg, 0.1);
+        UpdateSitTarget(avOffset, llEuler2Rot(avRotation * DEG_TO_RAD));
         OpenAdjustSetting(adjustMode, av);
     }
     else
@@ -200,8 +200,8 @@ HandleAdjustRotation(string msg, key av)
 {
     if (msg != "[ BACK ]")
     {
-        avatarRotation = IncrementVector(avatarRotation, msg, 5.0);
-        UpdateSitTarget(animationOffset, llEuler2Rot(avatarRotation * DEG_TO_RAD));
+        avRotation = IncrementVector(avRotation, msg, 5.0);
+        UpdateSitTarget(avOffset, llEuler2Rot(avRotation * DEG_TO_RAD));
         OpenAdjustSetting(adjustMode, av);
     }
     else

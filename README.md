@@ -16,8 +16,8 @@ The format is comma separated values with one setting per line. Options availabl
 - `soundVolume`: (float) When a sound file is present it will play this sound at the specified volume
 - `sleepTime`: (float) A time delay before the user is teleported to the destination
 - `destination`: (vector) Coordinates to teleport the user to within the sim.
-- `animationOffset`: (vector) An optional item that can override the default positioning of the avatar sitting
-- `avatarRotation`: (vector) An optional item to specify avatar rotation if needed depending on your animation
+- `avOffset`: (vector) An optional item that can override the default positioning of the avatar sitting
+- `avRotation`: (vector) An optional item to specify avatar rotation if needed depending on your animation
 - `message`: (string) An optional custom message to display when teleporting.
 - `menuText`: (string) Optional text to display in menu when object is right-clicked. Default: Teleport
 
@@ -57,7 +57,7 @@ Getting the offset and rotation for a pose can be a lot of trial and error, so t
 Adjust setting will have 3 options:
 1. offset (tweak the offset along the X, Y, and Z axis)
 2. rotation (tweak the rotation in 5 degree ingrements along the X, Y, and Z axis)
-3. DUMP (print the current settings for avatarRotation and animationOffset to chat)
+3. DUMP (print the current settings for avRotation and avOffset to chat)
 
 Make sure to stand up off the teleporter once you are done adjusting.
 
