@@ -36,6 +36,12 @@ You may only have up to 12 destinations in your teleport network currently. If y
 
 The script relies on unique destination names. If you have more than one name it will always pick the first destination on the list that matches that name.
 
+Make sure that your destination coordinates are valid vectors that you can teleport to within the sim. If they are not, the script will display a warning and set the coordinates to the same as the object.
+```
+# This will result in a warning and the teleport won't work.
+destination,<10.0,100.0, 50.0, Ground Level
+```
+
 ### Custom message
 The teleporter can send a message to local chat when someone teleports by specifying the `message` parameter in you CONFIG. It also does a little string substitution, so if you include `$DISPLAY_NAME` in your message it will substitute the display name of the avatar sitting
 
