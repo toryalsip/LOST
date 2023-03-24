@@ -76,7 +76,7 @@ ParseConfigLine(string data)
                 destination = llGetPos();
             }
             ++destinationCount;
-            destinations += (vector)itemValue;
+            destinations += destination;
             destinationNames += destinationName;
         }
         else
