@@ -174,7 +174,7 @@ OpenAdjustSetting(string msg, key av)
     {
         llOwnerSay("Current sit target settings. Copy these into your CONFIG notecard");
         llOwnerSay("avOffset, " + (string)avOffset);
-        llOwnerSay("avatarRotaton, " + (string)avRotation);
+        llOwnerSay("avRotation, " + (string)avRotation);
         OpenAdjustMenu();
         return;
     }
