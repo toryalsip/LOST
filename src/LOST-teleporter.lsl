@@ -69,6 +69,12 @@ ParseConfigLine(string data)
         }
         if (destinationCount < MAX_DESTINATION_COUNT)
         {
+            vector destination = (vector)itemValue;
+            if (destination == ZERO_VECTOR)
+            {
+                llOwnerSay("Warning, destination " + destinationName + " is not a valid vector.");
+                destination = llGetPos();
+            }
             ++destinationCount;
             destinations += (vector)itemValue;
             destinationNames += destinationName;
