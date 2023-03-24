@@ -1,4 +1,4 @@
-string SCRIPT_VERSION = "v0.0.1-alpha6";
+string SCRIPT_VERSION = "v0.1.0";
 string scriptMode;
 key notecardQueryId; //Identifier for the dataserver event
 string configName = "CONFIG"; //Name of a notecard in the object's inventory.
