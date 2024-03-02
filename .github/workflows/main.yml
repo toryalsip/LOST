@@ -20,4 +20,4 @@ jobs:
       - uses: toryalsip/lslint-action@v2-beta5
         with:
           filepath: "src/"
-          lslint_version: "v1.3"
+          lslint_version: "nightly_build_20231213045223"
