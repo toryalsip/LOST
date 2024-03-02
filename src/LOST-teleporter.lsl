@@ -1,4 +1,4 @@
-string SCRIPT_VERSION = "v0.1.0";
+string SCRIPT_VERSION = "v0.1.1";
 string scriptMode;
 key notecardQueryId; //Identifier for the dataserver event
 string configName = "CONFIG"; //Name of a notecard in the object's inventory.
@@ -123,7 +123,7 @@ DoTeleport(vector destination, key av)
 
     if (teleportMessage)
     {
-        llSay(0, strReplace(teleportMessage, "$DISPLAY_NAME", llGetDisplayName(av)));
+        llSay(0, llReplaceSubString(teleportMessage, "$DISPLAY_NAME", llGetDisplayName(av), 0));
     }
 
     llSleep(sleepTime);
@@ -274,11 +274,6 @@ UpdateSitTarget(vector pos, rotation rot)
     }
     @end;
 }//Written by Strife Onizuka, size adjustment and improvements provided by Talarus Luan
-
-// This is only temporary until Firestorm adds support for llReplaceSubString
-string strReplace(string str, string search, string replace) {
-    return llDumpList2String(llParseStringKeepNulls((str = "") + str, [search], []), replace);
-}
 
 default
 {
