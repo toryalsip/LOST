@@ -1,4 +1,4 @@
-string SCRIPT_VERSION = "v0.1.1";
+string SCRIPT_VERSION = "v0.2.0";
 string scriptMode;
 key notecardQueryId; //Identifier for the dataserver event
 string configName = "CONFIG"; //Name of a notecard in the object's inventory.
@@ -16,6 +16,7 @@ string menuText = "Teleport";
 string teleportMessage;
 list destinations;
 list destinationNames;
+list destinationAccess;
 integer destinationCount;
 integer MAX_DESTINATION_COUNT = 12; // This is to avoid errors when loading menu
 
@@ -27,6 +28,10 @@ string adjustMode;
 
 vector COLOR_GREEN = <0.0, 1.0, 0.0>;
 float OPAQUE = 1.0;
+
+string ACCESS_ALL = "ALL";
+string ACCESS_GROUP = "GROUP";
+string ACCESS_OWNER = "OWNER";
 
 ReadConfig()
 {
@@ -42,6 +47,7 @@ ReadConfig()
     llOwnerSay("Reading config, please wait..."); //Notify user that read has started.
     destinations = [];
     destinationNames = [];
+    destinationAccess = [];
     destinationCount = 0;
     notecardLine = 0;
 
@@ -63,10 +69,16 @@ ParseConfigLine(string data)
     else if (itemName == "destination")
     {
         string destinationName = llList2String(items, 2);
+        string access = llList2String(items, 3);
         if (destinationName == "" )
         {
             destinationName = (string)(destinationCount + 1);
         }
+        if (access == "" )
+        {
+            access = ACCESS_ALL;
+        }
+        
         if (destinationCount < MAX_DESTINATION_COUNT)
         {
             vector destination = (vector)itemValue;
@@ -78,6 +90,7 @@ ParseConfigLine(string data)
             ++destinationCount;
             destinations += destination;
             destinationNames += destinationName;
+            destinationAccess += access;
         }
         else
         {
@@ -101,9 +114,21 @@ SetSitValues()
 
 StartTeleportDialog(key av)
 {
+    list filteredNames = [];
+    integer i;
+    for (i = 0; i < destinationCount; i++ )
+    {
+        string access = llList2String(destinationAccess, i);
+        if (access == ACCESS_OWNER && av == llGetOwner() ||
+        access == ACCESS_GROUP && llSameGroup(av) ||
+        access == ACCESS_ALL)
+        {
+            filteredNames += llList2String(destinationNames, i);
+        }
+    }
     llListenRemove(dialogListener);
     dialogListener = llListen(DIALOG_CHANNEL, "", av, "");
-    llDialog(av, "\nPlease select a destination", destinationNames, DIALOG_CHANNEL);
+    llDialog(av, "\nPlease select a destination", filteredNames, DIALOG_CHANNEL);
 }
 
 DoTeleportByName(string destinationName, key av)
