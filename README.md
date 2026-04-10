@@ -42,6 +42,18 @@ Make sure that your destination coordinates are valid vectors that you can telep
 destination,<10.0,100.0, 50.0, Ground Level
 ```
 
+### Destination Access
+An option you can add to a destination is an access level. This determines from the list of available destinations, which ones does the current avatar have access to. Here are the possible values.
+- `ALL`: The default value, anyone can access this destination
+- `GROUP`: Only those who are in the same group as the teleporter can access the destination
+- `OWNER`: Only the owner of the script can access the destination
+
+Example:
+```
+destination,<10.0,100.0, 50.0>, Ground Level, ALL
+destination,<10.0,100.0, 1500.0>, Skybox, GROUP
+```
+
 ### Custom message
 The teleporter can send a message to local chat when someone teleports by specifying the `message` parameter in you CONFIG. It also does a little string substitution, so if you include `$DISPLAY_NAME` in your message it will substitute the display name of the avatar sitting
 
